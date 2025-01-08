@@ -1,0 +1,16 @@
+void setup() {
+  Serial.begin(9600); // 시리얼 통신 속도 설정
+}
+
+void loop() {
+  // 데이터 송신
+  Serial.println("Hello from Arduino!"); // 데이터를 컴퓨터로 전송
+  delay(1000); // 1초 간격으로 데이터 전송
+
+  // 데이터 수신
+  if (Serial.available()) {
+    String receivedData = Serial.readString(); // 수신된 데이터를 읽음
+    Serial.print("Received: ");
+    Serial.println(receivedData); // 수신 데이터를 다시 컴퓨터로 전송
+  }
+}

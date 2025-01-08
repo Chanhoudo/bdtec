@@ -1,0 +1,46 @@
+using System;
+using System.IO.Ports;
+using System.Windows;
+
+namespace SerialCommunicationApp
+{
+    public partial class MainWindow : Window
+    {
+        private SerialPort _serialPort;
+
+        public MainWindow()
+        {
+            InitializeComponent();
+
+            // 시리얼 포트 초기화
+            _serialPort = new SerialPort("COM3", 9600); // COM 포트와 Baud Rate 설정
+            _serialPort.DataReceived += SerialPort_DataReceived; // 데이터 수신 이벤트 등록
+            _serialPort.Open(); // 포트 열기
+        }
+
+        private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
+            string data = _serialPort.ReadLine(); // 수신된 데이터 읽기
+            Dispatcher.Invoke(() =>
+            {
+                MessageBox.Show($"Received: {data}"); // 데이터를 UI에 표시
+            });
+        }
+
+        private void SendData(string data)
+        {
+            if (_serialPort != null && _serialPort.IsOpen)
+            {
+                _serialPort.WriteLine(data); // 데이터를 아두이노로 송신
+            }
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (_serialPort != null && _serialPort.IsOpen)
+            {
+                _serialPort.Close(); // 포트 닫기
+            }
+        }
+    }
+}
