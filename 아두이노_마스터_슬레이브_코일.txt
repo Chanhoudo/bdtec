@@ -1,0 +1,92 @@
+////////////////////////////////////////////////////////////////////
+#include "nockanda.h"
+
+SoftwareSerial max3232(2,3);
+Nockanda_modbus nm(&max3232);
+
+unsigned long main_t = 0;
+bool sw = false;
+
+void write_single_coil(byte id,uint16_t addr,uint16_t data){
+  Serial.print("write single coil 완료함");
+}
+void write_multiple_coils(byte id,uint16_t addr,uint16_t cnt){
+  Serial.print("write multiple coils 완료함");
+}
+void write_single_register(byte id,uint16_t addr, uint16_t data){
+  Serial.print("write_single_register 완료함");
+}
+void read_coils(byte id,uint16_t addr,uint16_t cnt,uint16_t num, byte * data){
+  Serial.print("read_coils 완료함=");
+  bool coil0 = (data[3] >> 0) & 0x01;
+  bool coil1 = (data[3] >> 1) & 0x01;
+  Serial.print(",코일0번=");
+  Serial.print(coil0);
+  Serial.print(",코일1번=");
+  Serial.print(coil1);
+  Serial.println();
+}
+void read_holding_register(byte id, byte * data,uint16_t offset,uint16_t len,uint16_t num){
+  Serial.print("read_holding_register 완료함");
+  //data[3], data[4]
+  uint16_t val = (data[3] << 8) | data[4];
+  Serial.print(",레지스터0번=");
+  Serial.println(val);
+}
+void read_input_register(byte id, byte * data,uint16_t offset,uint16_t len,uint16_t num){
+  Serial.print("read_input_register 완료함");
+}
+
+void setup() {
+  Serial.begin(9600);//PC에 결과를 출력하기 위한 통신라인!
+  nm.begin(9600);//산업용 아두이노와 모드버스 RTU!
+  nm.write_single_coil_cb = write_single_coil;
+  nm.read_holding_register_cb = read_holding_register;
+  nm.read_input_register_cb = read_input_register;
+  nm.read_coils_cb = read_coils;
+  nm.write_multiple_coils_cb = write_multiple_coils;
+  nm.write_single_register_cb=write_single_register;
+}
+void loop() {
+  nm.loop(); //녹칸다의 모드버스 기능을 동작시키는 부분
+  if(Serial.available()){
+    char c= Serial.read();
+    if(c == '0'){
+      nm.nockanda_write_single_coil_queue(1,0,0xFF00);
+    }else if(c == '1'){
+      nm.nockanda_write_single_coil_queue(1,0,0x0000);
+    }else if(c == '2'){
+      nm.nockanda_write_single_coil_queue(1,1,0xFF00);
+    }else if(c == '3'){
+      nm.nockanda_write_single_coil_queue(1,1,0x0000);
+    }else if(c == '4'){
+      nm.nockanda_read_coils_queue(1,0,2,0x0000);
+    }else if(c == '5'){
+      nm.nockanda_read_hoding_register_queue(1,0,1,0x0000);
+    }else if(c == '6'){
+      nm.nockanda_write_single_register_queue(1,0,456);
+    }else if(c == '7'){
+      nm.nockanda_write_single_register_queue(1,0,123);
+    }
+  }
+  /*
+  if(millis() - main_t > 1000){
+    main_t = millis();
+    //1마스터가 슬레이브에게 request한다!
+    //내가 request중인데 또 request할수는 없다!    
+    //nm.nockanda_read_hoding_register_queue(1,0,1,0x0000); //12345
+    //nm.nockanda_read_coils_queue(1,0,14,0x0000);
+    //nm.nockanda_write_single_register_queue(1,0,1234);
+    if(sw){
+      nm.nockanda_write_single_coil_queue(1,0,0xFF00);
+      //nm.nockanda_write_multiple_coils_queue(1,0,14,0b1111111100111111);
+      sw = !sw;
+    }else{
+      nm.nockanda_write_single_coil_queue(1,0,0x0000);
+      //nm.nockanda_write_multiple_coils_queue(1,0,14,0b0000000000000000);
+      sw = !sw;
+    }
+  }
+  */
+}
+
